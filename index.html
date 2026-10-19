@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caza del tesoro</title>
+<style>
+/* ===========================================================
+   CAZA DEL TESORO · Webquest para Educación Infantil
+   Paleta: abismo, laguna, espuma, arena, coral, oro
+   =========================================================== */
+:root{
+  --abismo:#08324f;
+  --laguna:#12a4b8;
+  --espuma:#e6fbff;
+  --arena:#f4cf8a;
+  --coral:#ff6f59;
+  --oro:#ffc83d;
+  --ok:#2fbf71;
+  --papel:#ffffff;
+  --sombra:0 10px 0 rgba(8,50,79,.18), 0 18px 30px rgba(8,50,79,.18);
+  --fuente:"Trebuchet MS","Arial Rounded MT Bold","Segoe UI",Verdana,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;
+  font-family:var(--fuente);color:var(--abismo);
+  background:linear-gradient(#e3f9fd 0%,#a8e4ef 55%,#6cc6da 100%) fixed;
+  overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+button{font:inherit;color:inherit}
+:focus-visible{outline:4px dashed var(--coral);outline-offset:4px}
+
+/* ---------- Burbujas de fondo ---------- */
+.bubbles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bubble{
+  position:absolute;bottom:-60px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.9),rgba(255,255,255,.15) 60%);
+  border:2px solid rgba(255,255,255,.7);
+  animation:subir linear infinite;
+}
+@keyframes subir{to{transform:translateY(-115vh) translateX(30px)}}
+
+/* ---------- Cabecera y pestañas ---------- */
+header.top{
+  position:sticky;top:0;z-index:20;
+  background-color:var(--abismo);background-size:cover;background-position:center;
+  box-shadow:0 6px 0 rgba(8,50,79,.25);
+}
+header.top::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,50,79,.82),rgba(8,50,79,.45));}
+.top-in{position:relative;display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;padding:.7rem 1.2rem;max-width:1400px;margin:0 auto}
+.brand{margin:0;color:#fff;font-size:clamp(1.4rem,2.6vw,2.2rem);letter-spacing:.5px;text-shadow:0 3px 0 rgba(0,0,0,.3);white-space:nowrap}
+.brand span{display:inline-block;animation:balanceo 3.2s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes balanceo{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+nav.tabs{display:flex;gap:.6rem;flex-wrap:wrap;flex:1}
+.tab{
+  position:relative;display:flex;align-items:center;gap:.5rem;
+  min-height:58px;padding:.4rem 1.1rem;border:0;border-radius:999px;cursor:pointer;
+  background:rgba(255,255,255,.92);font-size:clamp(1rem,1.8vw,1.4rem);font-weight:800;
+  box-shadow:0 5px 0 rgba(8,50,79,.35);transition:transform .15s, box-shadow .15s, background .2s;
+}
+.tab:hover{transform:translateY(-2px)}
+.tab:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(8,50,79,.35)}
+.tab .ico{font-size:1.5em;line-height:1}
+.tab[aria-selected="true"]{background:var(--oro);box-shadow:0 5px 0 #b98400}
+.tab .badge{font-size:1.05em;min-width:1ch}
+
+/* ---------- Paneles ---------- */
+main{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:1.4rem 1.2rem 3rem}
+.panel{display:none}
+.panel.activo{display:block;animation:entra .35s ease-out}
+@keyframes entra{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.titulo{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin:.2rem 0 1rem}
+.titulo h2{margin:0;font-size:clamp(1.7rem,3.8vw,3.1rem);line-height:1.05;letter-spacing:-.5px}
+.estrellas{margin-left:auto;display:flex;gap:.3rem;font-size:clamp(1.6rem,3vw,2.5rem);filter:drop-shadow(0 3px 0 rgba(8,50,79,.2))}
+.estrellas .vacia{filter:grayscale(1) opacity(.35)}
+.estrellas .llena{animation:pop .5s ease-out}
+@keyframes pop{0%{transform:scale(.2) rotate(-40deg)}70%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes latido{50%{transform:scale(1.2)}}
+@keyframes late{50%{transform:scale(1.045)}}
+@keyframes sacude2{20%{transform:translateX(-14px) rotate(-3deg)}40%{transform:translateX(14px) rotate(3deg)}60%{transform:translateX(-10px)}80%{transform:translateX(10px)}}
+@keyframes flota{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+.boton-grande{
+  display:inline-flex;align-items:center;gap:.6rem;border:0;cursor:pointer;
+  padding:.8rem 2rem;border-radius:999px;background:var(--coral);color:#fff;
+  font-size:clamp(1.3rem,2.4vw,2rem);font-weight:900;
+  box-shadow:0 8px 0 #b8402f;transition:transform .12s, box-shadow .12s;
+}
+.boton-grande:hover{transform:translateY(-3px)}
+.boton-grande:active{transform:translateY(5px);box-shadow:0 3px 0 #b8402f}
+
+/* Mensajes de acierto / error */
+.mensaje{min-height:4rem;display:flex;justify-content:center;align-items:center;margin:1rem 0 .4rem}
+.mensaje span{
+  opacity:0;transform:scale(.7);transition:opacity .25s, transform .35s cubic-bezier(.3,1.6,.5,1);
+  padding:.45em 1.4em;border-radius:999px;color:#fff;font-weight:900;text-align:center;
+  font-size:clamp(1.3rem,2.6vw,2.2rem);box-shadow:0 6px 0 rgba(8,50,79,.25);
+}
+.mensaje.ver span{opacity:1;transform:none}
+.mensaje.ok span{background:var(--ok)}
+.mensaje.mal span{background:var(--coral)}
+.acciones{display:flex;justify-content:center;margin-top:.4rem;min-height:70px}
+
+/* Efectos (burbujas y estrellas) */
+.fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:15}
+.fx .bub{
+  position:absolute;bottom:-50px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.95),rgba(255,255,255,.2) 65%);
+  border:2px solid rgba(255,255,255,.85);animation:subirfx 3.4s ease-in forwards;
+}
+@keyframes subirfx{to{transform:translateY(-120vh) translateX(var(--dx,20px));opacity:.25}}
+.fx img.est{position:absolute;top:-70px;width:clamp(36px,5vw,64px);animation:caer 3.3s ease-in forwards}
+@keyframes caer{to{transform:translateY(120vh) rotate(360deg)}}
+#confeti{position:fixed;inset:0;z-index:80;pointer-events:none}
+#aviso{
+  position:fixed;left:50%;bottom:22px;z-index:90;transform:translate(-50%,140%);
+  background:var(--abismo);color:#fff;padding:.8rem 1.6rem;border-radius:999px;
+  font-size:clamp(1.1rem,2vw,1.5rem);font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.35);
+  transition:transform .35s cubic-bezier(.3,1.5,.5,1);max-width:92vw;text-align:center;
+}
+#aviso.ver{transform:translate(-50%,0)}
+
+/* Escenarios con imagen de fondo */
+.escenario{
+  position:relative;border-radius:36px;border:8px solid #fff;padding:1.1rem 1.4rem 1.2rem;
+  background-size:cover;background-position:center;box-shadow:var(--sombra);overflow:hidden;
+}
+.escenario .titulo h2{background:rgba(255,255,255,.9);padding:.15em .7em;border-radius:999px}
+.consigna{margin:.1rem 0 1rem;text-align:center;position:relative;z-index:2}
+.consigna span{
+  display:inline-block;background:rgba(255,255,255,.93);padding:.3em 1.1em;border-radius:28px;
+  font-size:clamp(1.2rem,2.4vw,2rem);font-weight:900;box-shadow:0 5px 0 rgba(8,50,79,.2);
+}
+.escenario > *{position:relative;z-index:2}
+.escenario > .fx{position:absolute;z-index:15}
+
+/* ---------- INICIO ---------- */
+.inicio{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:2rem;align-items:center}
+.mapa{
+  position:relative;aspect-ratio:612/406;border-radius:30px;border:8px solid #fff;
+  background-size:cover;background-position:center;box-shadow:var(--sombra);transform:rotate(-1.5deg);
+}
+.mapa svg{position:absolute;inset:0;width:100%;height:100%}
+.parada{
+  position:absolute;transform:translate(-50%,-50%);width:clamp(64px,11vw,110px);aspect-ratio:1;
+  border-radius:50%;border:6px solid #fff;background:var(--laguna);cursor:pointer;
+  font-size:clamp(1.8rem,4vw,3.2rem);display:grid;place-items:center;
+  box-shadow:0 6px 0 rgba(8,50,79,.35);transition:transform .15s;
+}
+.parada:hover{transform:translate(-50%,-54%) scale(1.06)}
+.parada.hecha{background:var(--ok)}
+.parada.hecha::after{content:"⭐";position:absolute;right:-10px;top:-14px;font-size:.55em}
+.parada.ultima{background:var(--coral)}
+.islas{position:absolute;inset:auto 0 -22px 0;display:flex;justify-content:space-between;padding:0 4%;pointer-events:none}
+.islas img{width:clamp(70px,12vw,150px);border-radius:18px;border:4px solid #fff;box-shadow:0 6px 0 rgba(8,50,79,.25)}
+.islas img:nth-child(1){animation:flota 4s ease-in-out infinite}
+.islas img:nth-child(2){animation:flota 4s ease-in-out -2s infinite}
+.saludo{text-align:center}
+.saludo h3{margin:0 0 1.2rem;font-size:clamp(2rem,4.6vw,3.8rem);line-height:1.05}
+.saludo p{margin:0 0 1.6rem;font-size:clamp(1.3rem,2.4vw,2rem);font-weight:700}
+
+/* ---------- PISTA 1 · SONIDOS ---------- */
+.decor{position:absolute;bottom:-6px;pointer-events:none;z-index:1!important;width:clamp(80px,13vw,200px)}
+.decor.izq{left:-6px}
+.decor.der{right:-6px}
+.rejilla1{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.1rem 1.6rem;max-width:1000px;margin:0 auto}
+.fila{display:contents}
+.snd{
+  position:relative;border:0;cursor:pointer;border-radius:28px;min-height:clamp(84px,14vh,130px);
+  background:var(--laguna);color:#fff;box-shadow:0 8px 0 #0b7686;display:grid;place-items:center;
+  font-size:clamp(2.4rem,5vw,4rem);transition:transform .12s;
+}
+.snd:hover{transform:translateY(-3px)}
+.snd:active{transform:translateY(4px)}
+.snd .num{
+  position:absolute;left:14px;top:10px;font-size:.36em;font-weight:900;background:#fff;color:var(--abismo);
+  width:1.9em;height:1.9em;border-radius:50%;display:grid;place-items:center;
+}
+.snd .ok{display:none;position:absolute;right:14px;top:6px;font-size:.45em}
+.snd.actual{background:var(--oro);color:var(--abismo);box-shadow:0 8px 0 #b98400,0 0 0 8px rgba(255,200,61,.55);animation:late 1s ease-in-out infinite}
+.snd.sonando{background:var(--coral);color:#fff;box-shadow:0 8px 0 #b8402f,0 0 0 8px rgba(255,111,89,.45)}
+.snd.sonando .alt{animation:latido .6s ease-in-out infinite}
+.snd.resuelto{background:var(--ok);box-shadow:0 8px 0 #1c8a50}
+.snd.resuelto .ok{display:block}
+.foto-op{
+  position:relative;border:0;padding:0;cursor:pointer;text-align:center;background:var(--papel);
+  border-radius:28px;overflow:hidden;box-shadow:var(--sombra);transition:transform .15s;
+}
+.foto-op:hover{transform:translateY(-4px)}
+.foto-op .marco{display:block;aspect-ratio:16/10;background:#efece4}
+.foto-op .marco img{width:100%;height:100%;object-fit:contain}
+.foto-op .nom{display:block;padding:.35rem .6rem .6rem;font-size:clamp(1.4rem,2.8vw,2.4rem);font-weight:900}
+.foto-op.resuelta{box-shadow:0 10px 0 var(--ok),0 18px 30px rgba(8,50,79,.18);cursor:default}
+.foto-op.resuelta::after{content:"✔";position:absolute;right:12px;top:10px;width:2em;height:2em;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:1.6rem;font-weight:900}
+.foto-op.sacude,.snd.sacude{animation:sacude2 .45s}
+
+/* ---------- PISTA 2 · MAR LIMPIO ---------- */
+.mar{
+  position:relative;aspect-ratio:16/9;width:min(100%,calc(60vh * 16 / 9));margin:0 auto;
+  border-radius:30px;border:8px solid #fff;overflow:hidden;box-shadow:var(--sombra);
+  background:linear-gradient(#8fd6f5,#e8f9ff);touch-action:none;--sucio:1;
+}
+.mar .agua{position:absolute;left:0;right:0;top:24%;bottom:0;background-size:cover;background-position:center}
+.mar .agua::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(18,164,184,.45),rgba(18,164,184,0) 40%)}
+.mar .agua::after{content:"";position:absolute;inset:0;background:rgb(86,92,38);opacity:calc(var(--sucio) * .42);transition:opacity 1.2s;pointer-events:none}
+.mar .linea{position:absolute;left:0;right:0;top:23.2%;height:1.6%;background:rgba(255,255,255,.8)}
+.barco-caja{
+  position:absolute;left:58%;top:0;height:31%;aspect-ratio:1.45;z-index:4;
+  animation:mece 3.6s ease-in-out infinite;transition:filter .2s;
+}
+@keyframes mece{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(5px) rotate(1.5deg)}}
+.barco-caja img{width:100%;height:100%;object-fit:contain}
+.barco-caja .recicla{
+  position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:1.7em;height:1.7em;border-radius:50%;
+  background:#fff;border:3px solid var(--ok);display:grid;place-items:center;font-size:clamp(1.1rem,3vw,2.4rem);
+}
+.barco-caja.encima{filter:drop-shadow(0 0 12px #ffe066) drop-shadow(0 0 26px #ffe066)}
+.barco-caja.recibe{animation:rebote .5s}
+@keyframes rebote{30%{transform:scale(1.12)}60%{transform:scale(.96)}}
+.obj{
+  position:absolute;transform:translate(-50%,-50%);cursor:grab;touch-action:none;user-select:none;-webkit-user-drag:none;
+  filter:drop-shadow(0 6px 6px rgba(0,0,0,.3));z-index:3;object-fit:contain;max-height:26%;
+  transition:left .55s cubic-bezier(.3,1.5,.5,1),top .55s cubic-bezier(.3,1.5,.5,1),transform .45s,opacity .45s;
+  animation:flotar 4s ease-in-out infinite;
+}
+@keyframes flotar{50%{margin-top:-8px}}
+.obj.arrastrando{animation:none;cursor:grabbing;z-index:10;transform:translate(-50%,-50%) scale(1.12);filter:drop-shadow(0 14px 12px rgba(0,0,0,.35));transition:none}
+.obj.entra{transform:translate(-50%,-50%) scale(.15);opacity:0;transition:left .5s ease-in,top .5s ease-in,transform .5s ease-in,opacity .5s ease-in;animation:none}
+
+/* ---------- PISTA 3 · LINTERNA ---------- */
+.btn-pista{
+  border:0;cursor:pointer;border-radius:999px;padding:.4rem 1.1rem;background:var(--oro);color:var(--abismo);
+  font-weight:900;font-size:clamp(1rem,1.8vw,1.4rem);box-shadow:0 5px 0 #b98400;
+}
+.btn-pista:active{transform:translateY(3px);box-shadow:0 2px 0 #b98400}
+.fondo-noche{background:linear-gradient(#0d3b66,#04122a);border-color:#1d4f7c}
+.fondo-noche .titulo h2{background:rgba(255,255,255,.12);color:#fff}
+.fondo-noche .consigna span{background:rgba(255,255,255,.14);color:#fff;box-shadow:none}
+.oceano{
+  position:relative;aspect-ratio:16/9;width:min(100%,calc(60vh * 16 / 9));margin:0 auto;
+  border-radius:30px;border:8px solid #1d4f7c;overflow:hidden;touch-action:none;
+  background:radial-gradient(ellipse at 50% 0%,#0d3b66 0%,#061a33 55%,#030c1a 100%);
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+.oceano.haz-on{cursor:none}
+.oceano .alga-fondo{position:absolute;bottom:-4%;width:11%;filter:brightness(.12) saturate(.4);pointer-events:none}
+.oceano .burb{position:absolute;bottom:-30px;border-radius:50%;border:2px solid rgba(160,210,255,.28);animation:subir linear infinite}
+.elem{
+  position:absolute;transform:translate(-50%,-50%);cursor:pointer;border:0;background:none;padding:0;z-index:3;
+  --b:.12;--s:.4;
+}
+.elem img{width:100%;height:auto;max-height:100%;filter:brightness(var(--b)) saturate(var(--s));transition:filter .6s}
+.elem[data-nivel="1"]{--b:.4;--s:.7}
+.elem[data-nivel="2"]{--b:.8;--s:1}
+.elem.luz img{filter:brightness(calc(var(--b) + .5)) saturate(calc(var(--s) + .3))}
+.elem[data-nivel="3"] img{filter:brightness(1.1) saturate(1.15) drop-shadow(0 0 18px rgba(255,240,150,.9))}
+.elem .nom3{
+  position:absolute;left:50%;top:100%;transform:translateX(-50%) scale(0);transform-origin:50% 0;
+  background:#fff;color:var(--abismo);padding:.1em .8em;border-radius:999px;font-weight:900;white-space:nowrap;
+  font-size:clamp(1.1rem,2.2vw,1.9rem);transition:transform .4s cubic-bezier(.3,1.8,.5,1);box-shadow:0 4px 0 rgba(0,0,0,.35);
+}
+.elem[data-nivel="3"] .nom3{transform:translateX(-50%) scale(1)}
+.elem.pista::after{content:"";position:absolute;inset:-14%;border-radius:50%;border:4px dashed rgba(255,240,150,.95);animation:giro 2s linear 2}
+.elem.pista img{filter:brightness(calc(var(--b) + .6))}
+@keyframes giro{to{transform:rotate(360deg)}}
+.haz{
+  position:absolute;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .25s;mix-blend-mode:screen;
+  background:radial-gradient(circle var(--r,150px) at var(--lx,50%) var(--ly,50%),rgba(255,244,180,.55) 0%,rgba(255,244,180,.24) 50%,rgba(255,244,180,0) 100%);
+}
+.linterna{position:absolute;width:clamp(70px,11%,130px);pointer-events:none;z-index:6;opacity:0;transform:translate(-30%,-30%);transition:opacity .25s}
+.oceano.haz-on .haz,.oceano.haz-on .linterna{opacity:1}
+.final3{display:flex;flex-direction:column;align-items:center;gap:.6rem;margin-top:.6rem}
+.final3 .mensaje{margin:0}
+
+/* Pantalla de recompensa */
+.recompensa{
+  position:fixed;inset:0;z-index:70;display:grid;place-items:center;text-align:center;color:#fff;padding:1rem;overflow:auto;
+  background:radial-gradient(circle at 50% 30%,#14568f,#04122a 80%);
+}
+.recompensa .caja{display:grid;gap:1rem;justify-items:center;animation:aparece .8s cubic-bezier(.3,1.6,.5,1)}
+@keyframes aparece{from{opacity:0;transform:scale(.3) rotate(-8deg)}to{opacity:1;transform:none}}
+.recompensa h3{margin:0;font-size:clamp(2rem,5vw,4.2rem);line-height:1.05;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.recompensa p{margin:0;font-size:clamp(1.4rem,3vw,2.4rem);font-weight:800}
+.recompensa .imgs{display:flex;gap:1.4rem;justify-content:center;flex-wrap:wrap;align-items:center}
+.recompensa .imgs img{max-height:34vh;width:auto;border-radius:28px;border:8px solid var(--oro);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.recompensa .joyas{font-size:clamp(2rem,5vw,3.4rem);letter-spacing:.4rem;animation:flota 2.4s ease-in-out infinite}
+.recompensa .botones{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+
+/* ---------- Adaptación a pantallas pequeñas ---------- */
+@media (max-width:900px){
+  .inicio{grid-template-columns:1fr}
+  .rejilla1{gap:.7rem}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .bubbles{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="bubbles" id="burbujas" aria-hidden="true"></div>
+
+<header class="top" data-bg="portadaAgua2">
+  <div class="top-in">
+    <h1 class="brand"><span>🏴‍☠️</span> Caza del tesoro</h1>
+    <nav class="tabs" role="tablist" aria-label="Pistas">
+      <button class="tab" role="tab" data-go="inicio"><span class="ico">🏝️</span><span class="lbl">Inicio</span></button>
+      <button class="tab" role="tab" data-go="pista1"><span class="ico">🔊</span><span class="lbl">Pista 1</span><span class="badge" data-badge="p1"></span></button>
+      <button class="tab" role="tab" data-go="pista2"><span class="ico">♻️</span><span class="lbl">Pista 2</span><span class="badge" data-badge="p2"></span></button>
+      <button class="tab" role="tab" data-go="pista3"><span class="ico">🔦</span><span class="lbl">Pista 3</span><span class="badge" data-badge="p3"></span></button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== INICIO ===================== -->
+  <section id="inicio" class="panel" role="tabpanel">
+    <div class="inicio">
+      <div class="mapa" data-bg="portadaMapa">
+        <svg viewBox="0 0 100 66" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M18 44 C 30 14, 42 18, 50 28 S 70 52, 82 40" fill="none" stroke="#08324f" stroke-width="1.1" stroke-dasharray="3 2.4" stroke-linecap="round" opacity=".7"/>
+        </svg>
+        <button class="parada" data-go="pista1" style="left:18%;top:67%" aria-label="Pista 1">🔊</button>
+        <button class="parada" data-go="pista2" style="left:50%;top:42%" aria-label="Pista 2">♻️</button>
+        <button class="parada ultima" data-go="pista3" style="left:82%;top:60%" aria-label="Pista 3">🔦</button>
+        <div class="islas">
+          <img data-asset="isla1" alt="">
+          <img data-asset="isla2" alt="">
+        </div>
+      </div>
+      <div class="saludo">
+        <h3>¡Vamos a buscar el tesoro del mar!</h3>
+        <p>Escucha, limpia y descubre.</p>
+        <button class="boton-grande" data-go="pista1">🚀 ¡Empezamos!</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PISTA 1 ===================== -->
+  <section id="pista1" class="panel escenario" role="tabpanel" data-bg="portadaAgua">
+    <div class="titulo">
+      <h2>🌊 Pista 1: ¿Quién hay en el mar?</h2>
+      <div class="estrellas" data-stars="p1" aria-hidden="true"></div>
+    </div>
+    <p class="consigna"><span>¿Qué animal marino hace este sonido?</span></p>
+    <div class="rejilla1">
+      <div class="fila" id="filaSonidos"></div>
+      <div class="fila" id="filaFotos"></div>
+    </div>
+    <div class="mensaje" id="msg1"><span></span></div>
+    <div class="acciones"><button class="boton-grande" id="siguiente1" hidden>➡️ Siguiente sonido</button></div>
+    <img class="decor izq" data-asset="alga" alt="">
+    <img class="decor der" data-asset="coral" alt="">
+    <div class="fx" id="fx1"></div>
+  </section>
+
+  <!-- ===================== PISTA 2 ===================== -->
+  <section id="pista2" class="panel" role="tabpanel">
+    <div class="titulo">
+      <h2>♻️ Pista 2: misión, ¡mar limpio!</h2>
+      <div class="estrellas" data-stars="p2" aria-hidden="true"></div>
+    </div>
+    <p class="consigna"><span>¡Qué sucio está el mar! ¡Ayúdame a limpiarlo!</span></p>
+    <div class="mar" id="mar">
+      <div class="agua" data-bg="portadaAgua2"></div>
+      <div class="linea"></div>
+      <div class="barco-caja" id="barco">
+        <img data-asset="barco" alt="Barco de reciclaje" draggable="false">
+        <span class="recicla" id="simboloReciclaje">♻️</span>
+      </div>
+      <div class="fx" id="fx2"></div>
+    </div>
+    <div class="mensaje" id="msg2"><span></span></div>
+    <div class="acciones"><button class="boton-grande" id="sig2" hidden>🔦 ¡A la pista 3!</button></div>
+  </section>
+
+  <!-- ===================== PISTA 3 ===================== -->
+  <section id="pista3" class="panel escenario fondo-noche" role="tabpanel">
+    <div class="titulo">
+      <h2>🔦 Pista 3: descubrimos los secretos del mar</h2>
+      <div class="estrellas" data-stars="p3" aria-hidden="true"></div>
+      <button class="btn-pista" id="btnPista">💡 Pista</button>
+    </div>
+    <p class="consigna"><span>Exploradores del mar: ¡iluminad con vuestras linternas los elementos del mar y averiguad sus nombres para ganar la recompensa!</span></p>
+    <div class="oceano" id="oceano">
+      <div class="haz" id="haz"></div>
+      <img class="linterna" id="linterna" data-asset="linterna" alt="" draggable="false">
+    </div>
+    <div class="final3" id="final3" hidden>
+      <div class="mensaje ver ok"><span>¡Genial, guardianes! ¡Habéis descubierto todos los secretos del mar!</span></div>
+      <button class="boton-grande" id="btnRecompensa">🎁 Recibir recompensa</button>
+    </div>
+    <div class="fx" id="fx3"></div>
+  </section>
+
+</main>
+
+<!-- Pantalla de recompensa -->
+<div class="recompensa" id="recompensa" hidden role="dialog" aria-modal="true" aria-label="Recompensa">
+  <div class="caja">
+    <div class="joyas" aria-hidden="true">💎 🪙 👑 🪙 💎</div>
+    <h3>¡Habéis superado la pista 3!</h3>
+    <p>Ahora recibiréis vuestro cofre del tesoro</p>
+    <div class="imgs">
+      <img data-asset="cofre" alt="Cofre del tesoro">
+      <img data-asset="tesoro" alt="Niños con el tesoro">
+    </div>
+    <div class="botones">
+      <button class="boton-grande" id="btnOtraVez">🎉 ¡Otra vez!</button>
+      <button class="boton-grande" id="btnCerrarRecompensa">🏝️ Volver al inicio</button>
+    </div>
+  </div>
+  <div class="fx" id="fx4"></div>
+</div>
+
+<canvas id="confeti"></canvas>
+<div id="aviso" role="status" aria-live="polite"></div>
+
+<script>
+/* ===========================================================
+   1. RECURSOS
+   Si el index.html está junto a la carpeta "Inicio_files" funciona tal cual.
+   Si una imagen no carga se usa su enlace de origen (hace falta Internet) y,
+   para ballena, alga y barco, un dibujo propio incluido en este mismo archivo.
+   =========================================================== */
+const ASSETS = {
+  portadaAgua:  "Inicio_files/Portada bajo el agua.jpeg",
+  portadaAgua2: "Inicio_files/Portada bajo el agua dos.jpeg",
+  portadaMapa:  "Inicio_files/Portada mapa.jpeg",
+  tesoro:       "Inicio_files/Tesoro.jpeg",
+  cofre:        "Inicio_files/cofre tesoro.jpg",
+  isla1:        "Inicio_files/isla.jpeg",
+  isla2:        "Inicio_files/isla.jpg",
+  ballena:      "Inicio_files/ballena.png",
+  delfin:       "Inicio_files/delfin.png",
+  burbujas:     "Inicio_files/burbujas.png",
+  sndBallena:   "Inicio_files/sonido ballena.mpeg",
+  sndDelfin:    "Inicio_files/sonido delfin.mpeg",
+  sndBurbujas:  "Inicio_files/sonido burbujas.m4a",
+  alga:         "Inicio_files/Alga.png",
+  coral:        "Inicio_files/coral.png",
+  barco:        "Inicio_files/barco.png",
+  botella:      "Inicio_files/Botella de plástico.png",
+  bolsa:        "Inicio_files/Bolsas de plástico.png",
+  pajita:       "Inicio_files/Pajita.png",
+  plato:        "Inicio_files/Plato de refresco.png",
+  concha:       "Inicio_files/Concha de Mar.png",
+  estrellaMar:  "Inicio_files/Estrella de mar.png",
+  pececitos:    "Inicio_files/pececitos.png",
+  linterna:     "Inicio_files/linterna.png",
+  estrella:     "Inicio_files/estrella.png"
+};
+
+/* Enlaces de origen de cada imagen. Sirven de plan B: si el archivo local no carga
+   (y hay Internet), la web usa estos enlaces. */
+const REMOTAS = {
+  portadaAgua:  "https://media.istockphoto.com/id/1313838713/es/vector/vector-dibujos-animados-colorido-paisaje-submarino-con-plantas-marinas-y-corales.jpg?s=612x612&w=0&k=20&c=Mq9LyjOBJthLvZV8eYoHQ-ldMaYrHmfVaWIx-2ndO4g=",
+  portadaAgua2: "https://img.magnific.com/vector-gratis/fondo-mar-videoconferencias_52683-46343.jpg?semt=ais_hybrid&w=740&q=80",
+  portadaMapa:  "https://media.istockphoto.com/id/2196772509/es/vector/viejo-mapa-pirata-de-la-isla-del-tesoro-en-un-viejo-pergamino.jpg?s=612x612&w=0&k=20&c=hBzgNxiNZn6LJ9MdlxqU_xIUiTlyhCl1mXQbkjzYaxE=",
+  tesoro:       "https://img.magnific.com/vector-gratis/busqueda-tesoro-diseno-plano-dibujado-mano_23-2149302900.jpg?semt=ais_hybrid&w=740&q=80",
+  cofre:        "https://png.pngtree.com/png-vector/20230912/ourmid/pngtree-pirate-island-with-open-chest-water-png-image_9525353.png",
+  isla1:        "https://i.pinimg.com/736x/72/e5/dd/72e5dd93b210b6123eaa1fd0c0f694d2.jpg",
+  isla2:        "https://img.magnific.com/vector-gratis/escena-isla-coral-agua_1308-28550.jpg?semt=ais_hybrid&w=740&q=80",
+  delfin:       "https://cdn-icons-png.flaticon.com/512/7751/7751256.png",
+  burbujas:     "https://marketplace.canva.com/P5U-M/MAGy-cP5U-M/1/tl/canva-illustrazione-a-bolle-MAGy-cP5U-M.png",
+  coral:        "https://marketplace.canva.com/qv-ms/MAHNWRqv-ms/1/tl/canva-watercolour-coral-reef-with-clownfish-MAHNWRqv-ms.png",
+  botella:      "https://static.vecteezy.com/system/resources/thumbnails/080/424/381/small/distorted-empty-plastic-bottle-with-blue-cap-png.png",
+  bolsa:        "https://marketplace.canva.com/BQJYE/MAHChDBQJYE/1/tl/canva-illustration-of-a-plastic-shopping-bag-MAHChDBQJYE.png",
+  pajita:       "https://marketplace.canva.com/eDGqs/MAEqtqeDGqs/1/tl/canva-straw-gradient-icon-MAEqtqeDGqs.png",
+  plato:        "https://static.vecteezy.com/system/resources/thumbnails/041/304/802/small/blank-metal-can-for-beer-or-soda-drink-without-background-template-for-mockup-png.png",
+  concha:       "https://png.pngtree.com/png-vector/20250518/ourmid/pngtree-exquisite-watercolor-illustration-of-a-pink-open-seashell-with-lustrous-white-png-image_16281462.png",
+  estrellaMar:  "https://static.vecteezy.com/system/resources/thumbnails/052/476/244/small/hand-painted-watercolor-illustration-of-starfish-png.png",
+  pececitos:    "https://png.pngtree.com/png-vector/20250801/ourlarge/pngtree-pink-fish-tropical-cartoon-hand-painted-deep-sea-fish-png-image_16907507.webp",
+  linterna:     "https://images.vexels.com/media/users/3/137671/isolated/preview/6466a5023f82482db8f8587dd0ad28e0-linterna-luz.png",
+  estrella:     "https://cdn-icons-png.flaticon.com/512/4967/4967411.png"
+};
+
+/* Dibujos propios (ballena, alga y barco): se usan si la imagen no carga */
+const DIBUJOS = {
+  ballena: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 240'> <path d='M125 62 C112 38 92 34 84 14 M125 62 C138 38 158 34 166 14' stroke='#8fd6f5' stroke-width='7' fill='none' stroke-linecap='round'/> <circle cx='84' cy='12' r='6' fill='#8fd6f5'/><circle cx='166' cy='12' r='6' fill='#8fd6f5'/><circle cx='125' cy='22' r='5' fill='#8fd6f5'/> <path d='M335 148 C352 120 372 108 384 78 C372 90 360 88 352 94 C356 112 340 128 326 132Z' fill='#2f69a8'/> <path d='M335 148 C352 172 372 182 388 206 C374 198 360 200 350 194 C352 180 344 166 328 160Z' fill='#2f69a8'/> <path d='M24 150 C24 92 92 58 180 60 C268 62 332 100 342 150 C336 192 272 212 190 212 C100 212 24 200 24 150Z' fill='#3d82c8'/> <path d='M34 168 C110 196 270 202 336 166 C320 204 262 212 190 212 C110 212 46 200 34 168Z' fill='#e4f2ff'/> <path d='M170 172 C186 202 214 220 236 216 C224 196 212 180 202 168Z' fill='#2f69a8'/> <circle cx='88' cy='128' r='11' fill='#fff'/><circle cx='90' cy='129' r='5.5' fill='#143'/><circle cx='92' cy='127' r='1.8' fill='#fff'/> <path d='M44 160 Q86 184 132 166' stroke='#143' stroke-width='4' fill='none' stroke-linecap='round'/> <circle cx='62' cy='146' r='8' fill='#ff9d8f' opacity='.55'/> </svg>`,
+  alga: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 300'> <g fill='none' stroke-linecap='round'> <path d='M60 292 C30 240 92 200 62 150 C38 110 84 70 58 22' stroke='#2e8f4e' stroke-width='20'/> <path d='M140 292 C170 236 108 204 140 154 C164 116 120 76 146 30' stroke='#3fae5c' stroke-width='20'/> <path d='M100 296 C70 250 130 214 100 168 C78 132 118 96 98 48' stroke='#5cc873' stroke-width='22'/> <path d='M100 296 C70 250 130 214 100 168' stroke='#7ddc92' stroke-width='5' opacity='.7'/> </g> </svg>`,
+  barco: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 210'> <rect x='144' y='24' width='12' height='104' rx='4' fill='#6b4423'/> <path d='M156 30 C226 44 248 84 242 118 L156 118Z' fill='#fff6d8' stroke='#c9b27a' stroke-width='3'/> <path d='M144 46 C98 58 76 90 70 118 L144 118Z' fill='#fff1c9' stroke='#c9b27a' stroke-width='3'/> <path d='M156 22 L198 34 L156 48Z' fill='#ff6f59'/> <path d='M16 118 L286 118 C272 172 240 194 192 194 L108 194 C60 194 30 172 16 118Z' fill='#a0652d'/> <path d='M24 140 L278 140' stroke='#6b4423' stroke-width='5'/> <circle cx='96' cy='160' r='10' fill='#ffe9a8' stroke='#6b4423' stroke-width='4'/> <circle cx='150' cy='164' r='10' fill='#ffe9a8' stroke='#6b4423' stroke-width='4'/> <circle cx='204' cy='160' r='10' fill='#ffe9a8' stroke='#6b4423' stroke-width='4'/> <rect x='10' y='112' width='280' height='10' rx='5' fill='#6b4423'/> </svg>`
+};
+const DIBUJO_URI = k => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(DIBUJOS[k]);
+
+/* Pista 1. Los sonidos van en la fila de arriba (burbujas, delfín, ballena)
+   y las fotos en la de abajo (ballena, burbujas, delfín), como pide la ficha. */
+const SONIDOS = [
+  { id: "burbujas", nombre: "Burbujas", snd: "sndBurbujas" },
+  { id: "delfin",   nombre: "Delfín",   snd: "sndDelfin"   },
+  { id: "ballena",  nombre: "Ballena",  snd: "sndBallena"  }
+];
+const FOTOS = [
+  { id: "ballena",  nombre: "Ballena",  img: "ballena"  },
+  { id: "burbujas", nombre: "Burbujas", img: "burbujas" },
+  { id: "delfin",   nombre: "Delfín",   img: "delfin"   }
+];
+
+/* Pista 2. x e y son el centro de cada objeto en % de la escena; w es su ancho en %.
+   tipo "basura" = va al barco. tipo "mar" = se queda en el mar. */
+const BARCO_CON_SIMBOLO_PROPIO = false; /* pon true si barco.png ya trae el símbolo de reciclaje */
+const OBJETOS = [
+  { id: "botella",     tipo: "basura", img: "botella",     x: 16, y: 40, w: 9  },
+  { id: "concha",      tipo: "mar",    img: "concha",      x: 46, y: 40, w: 10 },
+  { id: "bolsa",       tipo: "basura", img: "bolsa",       x: 76, y: 42, w: 12 },
+  { id: "alga",        tipo: "mar",    img: "alga",        x: 30, y: 62, w: 9  },
+  { id: "plato",       tipo: "basura", img: "plato",       x: 60, y: 62, w: 12 },
+  { id: "pececitos",   tipo: "mar",    img: "pececitos",   x: 88, y: 66, w: 12 },
+  { id: "pajita",      tipo: "basura", img: "pajita",      x: 14, y: 78, w: 8  },
+  { id: "estrellaMar", tipo: "mar",    img: "estrellaMar", x: 44, y: 80, w: 10 },
+  { id: "coral",       tipo: "mar",    img: "coral",       x: 74, y: 80, w: 11 }
+];
+
+/* Pista 3. Elementos que se iluminan con la linterna. */
+const ELEMENTOS = [
+  { id: "estrellaMar", nombre: "Estrella de mar", img: "estrellaMar", x: 14, y: 58, w: 13 },
+  { id: "pececitos",   nombre: "Pececitos",       img: "pececitos",   x: 40, y: 28, w: 16 },
+  { id: "concha",      nombre: "Concha",          img: "concha",      x: 62, y: 62, w: 12 },
+  { id: "alga",        nombre: "Alga",            img: "alga",        x: 88, y: 44, w: 9  },
+  { id: "coral",       nombre: "Coral",           img: "coral",       x: 36, y: 66, w: 14 }
+];
+
+/* ===========================================================
+   2. ESTADO (al recargar la página con F5 el juego empieza de cero)
+   =========================================================== */
+let estado = { p1: [], p2: [], p3: {}, fin: false };
+function guardar(){} /* el progreso no se guarda: al recargar la página (F5) empieza de cero */
+
+const BASURA = OBJETOS.filter(o => o.tipo === "basura");
+const hecha1 = () => estado.p1.length >= SONIDOS.length;
+const hecha2 = () => estado.p2.length >= BASURA.length;
+const vistos3 = () => ELEMENTOS.filter(el => (estado.p3[el.id] || 0) >= 3).length;
+const hecha3 = () => vistos3() >= ELEMENTOS.length;
+
+/* ===========================================================
+   3. UTILIDADES
+   =========================================================== */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+/* Plan B: si una imagen no carga se prueba con su enlace de origen y, si tampoco, con un dibujo propio */
+const CLAVE_DE = {};
+Object.keys(ASSETS).forEach(k => { CLAVE_DE[ASSETS[k]] = k; });
+Object.keys(REMOTAS).forEach(k => { CLAVE_DE[REMOTAS[k]] = k; });
+document.addEventListener("error", e => {
+  const t = e.target;
+  if (!t || t.tagName !== "IMG") return;
+  const k = CLAVE_DE[t.getAttribute("src")];
+  if (!k) return;
+  if (REMOTAS[k] && !t.dataset.remota){ t.dataset.remota = "1"; t.referrerPolicy = "no-referrer"; t.src = REMOTAS[k]; }
+  else if (DIBUJOS[k] && !t.dataset.dibujo){ t.dataset.dibujo = "1"; t.src = DIBUJO_URI(k); }
+}, true);
+document.querySelectorAll("[data-asset]").forEach(el => { el.src = ASSETS[el.dataset.asset]; });
+document.querySelectorAll("[data-bg]").forEach(el => {
+  const k = el.dataset.bg;
+  el.style.backgroundImage = 'url("' + ASSETS[k] + '")';
+  const prueba = new Image();
+  prueba.onerror = () => { if (REMOTAS[k]) el.style.backgroundImage = 'url("' + REMOTAS[k] + '")'; };
+  prueba.src = ASSETS[k];
+});
+
+
+let tAviso;
+function aviso(texto){
+  const a = $("#aviso");
+  a.textContent = texto;
+  a.classList.add("ver");
+  clearTimeout(tAviso);
+  tAviso = setTimeout(() => a.classList.remove("ver"), 3800);
+}
+const tMsg = {};
+function decir(id, texto, tipo, ms){
+  const m = $(id);
+  m.className = "mensaje ver " + tipo;
+  m.firstElementChild.textContent = texto;
+  clearTimeout(tMsg[id]);
+  if (ms) tMsg[id] = setTimeout(() => callar(id), ms);
+}
+function callar(id){ clearTimeout(tMsg[id]); $(id).className = "mensaje"; }
+function sacudir(el){ el.classList.remove("sacude"); void el.offsetWidth; el.classList.add("sacude"); setTimeout(() => el.classList.remove("sacude"), 500); }
+
+/* Burbujas y estrellas que suben o caen dentro de un contenedor .fx */
+function chispas(cont, tipo, n){
+  for (let i = 0; i < n; i++){
+    setTimeout(() => {
+      let e;
+      if (tipo === "estrellas"){
+        e = document.createElement("img"); e.className = "est"; e.src = ASSETS.estrella; e.alt = "";
+        e.style.left = Math.random() * 94 + "%";
+      } else {
+        e = document.createElement("span"); e.className = "bub";
+        const t = 22 + Math.random() * 58;
+        e.style.width = e.style.height = t + "px";
+        e.style.left = Math.random() * 96 + "%";
+        e.style.setProperty("--dx", (Math.random() * 80 - 40) + "px");
+      }
+      cont.appendChild(e);
+      setTimeout(() => e.remove(), 3600);
+    }, i * 70);
+  }
+}
+
+/* Burbujas de fondo */
+(function(){
+  const cont = $("#burbujas");
+  for (let i = 0; i < 16; i++){
+    const b = document.createElement("span");
+    const t = 18 + Math.random() * 46;
+    b.className = "bubble";
+    b.style.cssText = `width:${t}px;height:${t}px;left:${Math.random()*100}%;animation-duration:${9 + Math.random()*12}s;animation-delay:${-Math.random()*20}s`;
+    cont.appendChild(b);
+  }
+})();
+
+/* ===========================================================
+   4. SONIDOS DE JUEGO (sintetizados, no necesitan archivos)
+   =========================================================== */
+let ac;
+function ctxAudio(){
+  if (!ac){ const C = window.AudioContext || window.webkitAudioContext; if (C) ac = new C(); }
+  if (ac && ac.state === "suspended") ac.resume();
+  return ac;
+}
+function nota(freq, inicio, dur, tipo = "sine", vol = .22){
+  const c = ctxAudio(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = tipo; o.frequency.value = freq;
+  const t0 = c.currentTime + inicio;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol, t0 + .02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t0); o.stop(t0 + dur + .05);
+}
+const sfx = {
+  pop(){ nota(520, 0, .12); nota(780, .07, .16); },
+  ding(){ nota(660, 0, .25, "triangle"); nota(880, .13, .3, "triangle"); nota(1175, .26, .45, "triangle"); },
+  fanfarria(){ [523, 659, 784, 1047].forEach((f, i) => nota(f, i * .14, .35, "triangle", .25)); nota(1319, .62, .8, "triangle", .25); nota(784, .62, .8, "sine", .15); },
+  nada(){ nota(250, 0, .2, "sine", .13); nota(190, .12, .26, "sine", .13); }
+};
+
+/* Confeti */
+const cv = $("#confeti"), cx = cv.getContext("2d");
+let trozos = [], raf = null;
+function tamCv(){ cv.width = innerWidth; cv.height = innerHeight; }
+addEventListener("resize", tamCv); tamCv();
+function confeti(n){
+  const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  n = reducido ? Math.min(n, 30) : n;
+  const col = ["#ffc83d", "#ff6f59", "#12a4b8", "#7bdc8c", "#ffffff", "#b78cff"];
+  for (let i = 0; i < n; i++){
+    trozos.push({ x: innerWidth / 2 + (Math.random() - .5) * innerWidth * .3, y: innerHeight * .6,
+      vx: (Math.random() - .5) * 15, vy: -Math.random() * 17 - 4, s: 7 + Math.random() * 9,
+      c: col[i % col.length], r: Math.random() * 6, vr: (Math.random() - .5) * .4, v: 0 });
+  }
+  if (!raf) bucle();
+}
+function bucle(){
+  cx.clearRect(0, 0, cv.width, cv.height);
+  trozos.forEach(p => {
+    p.vy += .36; p.x += p.vx; p.y += p.vy; p.vx *= .99; p.r += p.vr; p.v++;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c;
+    cx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * .6); cx.restore();
+  });
+  trozos = trozos.filter(p => p.y < cv.height + 30 && p.v < 280);
+  if (trozos.length) raf = requestAnimationFrame(bucle);
+  else { raf = null; cx.clearRect(0, 0, cv.width, cv.height); }
+}
+
+/* ===========================================================
+   5. NAVEGACIÓN POR PESTAÑAS
+   =========================================================== */
+const PANELES = ["inicio", "pista1", "pista2", "pista3"];
+let tAvance = null;
+function ir(id){
+  if (!PANELES.includes(id)) id = "inicio";
+  clearTimeout(tAvance);
+  pararSonido();
+  cerrarRecompensa(true);
+  $$(".panel").forEach(p => p.classList.toggle("activo", p.id === id));
+  $$(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.go === id ? "true" : "false"));
+  try { if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id); } catch (e) {}
+  scrollTo({ top: 0 });
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-go]");
+  if (b) ir(b.dataset.go);
+});
+addEventListener("hashchange", () => ir(location.hash.slice(1)));
+addEventListener("keydown", e => { if (e.key === "Escape") cerrarRecompensa(); });
+
+/* ===========================================================
+   6. PISTA 1 · ¿QUIÉN HAY EN EL MAR?
+   =========================================================== */
+const audios = {};
+let sonando = null, actual1 = null;
+
+function montarP1(){
+  const fs = $("#filaSonidos"), ff = $("#filaFotos");
+  fs.innerHTML = ""; ff.innerHTML = "";
+  SONIDOS.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.className = "snd"; b.dataset.id = s.id;
+    b.setAttribute("aria-label", "Sonido " + (i + 1));
+    b.innerHTML = `<span class="num">${i + 1}</span><span class="alt">🔊</span><span class="ok">✔</span>`;
+    b.addEventListener("click", () => elegirSonido(s));
+    fs.appendChild(b);
+  });
+  FOTOS.forEach(f => {
+    const b = document.createElement("button");
+    b.className = "foto-op"; b.dataset.id = f.id;
+    b.innerHTML = `<span class="marco"><img src="${ASSETS[f.img]}" alt=""></span><span class="nom">${f.nombre}</span>`;
+    b.addEventListener("click", () => elegirFoto(f, b));
+    ff.appendChild(b);
+  });
+  refrescar();
+}
+/* Si el archivo de audio no existe o el navegador no lo reproduce, se usa un sonido
+   sintetizado de respaldo (aproximado) para que la pista 1 funcione siempre. */
+const sintActivos = [];
+let tSint = null;
+const usaSintetico = {};
+function osc(c, tipo, f0, f1, t0, dur, vol){
+  const o = c.createOscillator(), g = c.createGain();
+  const t = c.currentTime + t0;
+  o.type = tipo;
+  o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + Math.min(.08, dur / 3));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t); o.stop(t + dur + .05);
+  sintActivos.push(o);
+}
+const VOCES = {
+  ballena(c){
+    osc(c, "sine", 110, 260, 0, 1.4, .30);  osc(c, "sine", 220, 520, 0, 1.4, .08);
+    osc(c, "sine", 260,  95, 1.5, 1.8, .30); osc(c, "sine", 520, 190, 1.5, 1.8, .08);
+    osc(c, "sine",  95, 180, 3.4, 1.3, .28); osc(c, "sine", 190, 360, 3.4, 1.3, .07);
+    return 4.8;
+  },
+  delfin(c){
+    for (let i = 0; i < 14; i++) osc(c, "square", 2600, 2200, i * .045, .02, .05);
+    osc(c, "sine", 1800, 3600, .8, .28, .16); osc(c, "sine", 3600, 2000, 1.12, .22, .16);
+    osc(c, "sine", 2200, 3900, 1.5, .30, .16);
+    for (let i = 0; i < 12; i++) osc(c, "square", 2400, 2000, 1.95 + i * .04, .02, .05);
+    osc(c, "sine", 2000, 4000, 2.5, .3, .16);
+    return 3.0;
+  },
+  burbujas(c){
+    for (let i = 0; i < 16; i++){
+      const t = (i * 0.2) + (i % 3) * .05, f = 250 + ((i * 97) % 340);
+      osc(c, "sine", f, f * 2.4, t, .09, .22);
+    }
+    return 3.5;
+  }
+};
+function pararSintetico(){
+  clearTimeout(tSint);
+  while (sintActivos.length){ try { sintActivos.pop().stop(); } catch (e) {} }
+}
+function sintetizar(s){
+  const c = ctxAudio();
+  if (!c || !VOCES[s.id]){ sonando = null; refrescar(); aviso("No se puede reproducir el sonido en este navegador."); return; }
+  pararSintetico();
+  const dur = VOCES[s.id](c);
+  tSint = setTimeout(() => { if (sonando === s.id){ sonando = null; refrescar(); } }, dur * 1000 + 200);
+}
+function falloAudio(s){
+  if (sonando !== s.id) return;
+  usaSintetico[s.id] = true;
+  sintetizar(s);
+}
+function audioDe(s){
+  if (!audios[s.id]){
+    const a = new Audio(ASSETS[s.snd]);
+    a.preload = "auto";
+    a.addEventListener("ended", () => { if (sonando === s.id){ sonando = null; refrescar(); } });
+    a.addEventListener("error", () => falloAudio(s));
+    audios[s.id] = a;
+  }
+  return audios[s.id];
+}
+function reproducir(s){
+  sonando = s.id; refrescar();
+  if (usaSintetico[s.id]){ sintetizar(s); return; }
+  const a = audioDe(s);
+  try { a.currentTime = 0; } catch (e) {}
+  const p = a.play();
+  if (p && p.catch) p.catch(() => falloAudio(s));
+}
+function pararSonido(){
+  if (!sonando) return;
+  const a = audios[sonando];
+  if (a){ a.pause(); try { a.currentTime = 0; } catch (e) {} }
+  pararSintetico();
+  sonando = null; refrescar();
+}
+function elegirSonido(s){
+  if (sonando === s.id){ pararSonido(); return; }
+  pararSonido();
+  if (!estado.p1.includes(s.id)) actual1 = s.id;
+  callar("#msg1");
+  if (!hecha1()) $("#siguiente1").hidden = true;
+  reproducir(s);
+}
+function elegirFoto(f, el){
+  if (estado.p1.includes(f.id)) return;
+  if (!actual1){
+    aviso("Primero escucha un sonido 🔊");
+    sacudir($("#filaSonidos").firstElementChild);
+    return;
+  }
+  if (f.id === actual1) acierto1();
+  else {
+    sfx.nada(); sacudir(el);
+    decir("#msg1", "Vuelve a intentarlo", "mal", 2600);
+  }
+}
+function acierto1(){
+  pararSonido();
+  estado.p1.push(actual1); actual1 = null; guardar();
+  sfx.ding(); chispas($("#fx1"), "burbujas", 26);
+  decir("#msg1", "¡Muy bien, has adivinado el animal!", "ok");
+  const btn = $("#siguiente1");
+  btn.hidden = false;
+  if (hecha1()){
+    btn.dataset.modo = "pista2";
+    btn.textContent = "🚀 ¡A la pista 2!";
+    tAvance = setTimeout(() => { if ($("#pista1").classList.contains("activo")) ir("pista2"); }, 4500);
+  } else {
+    btn.dataset.modo = "sonido";
+    btn.textContent = "➡️ Siguiente sonido";
+  }
+  refrescar();
+}
+$("#siguiente1").addEventListener("click", e => {
+  const btn = e.currentTarget;
+  clearTimeout(tAvance);
+  if (btn.dataset.modo === "pista2"){ ir("pista2"); return; }
+  btn.hidden = true; callar("#msg1");
+  const sig = SONIDOS.find(s => !estado.p1.includes(s.id));
+  if (sig) elegirSonido(sig);
+});
+
+/* ===========================================================
+   7. PISTA 2 · MISIÓN, ¡MAR LIMPIO!
+   =========================================================== */
+function montarP2(){
+  const mar = $("#mar");
+  $$(".obj", mar).forEach(e => e.remove());
+  OBJETOS.forEach((o, i) => {
+    if (o.tipo === "basura" && estado.p2.includes(o.id)) return;
+    const im = document.createElement("img");
+    im.className = "obj"; im.src = ASSETS[o.img]; im.alt = ""; im.draggable = false;
+    im.dataset.id = o.id;
+    im.style.left = o.x + "%"; im.style.top = o.y + "%"; im.style.width = o.w + "%";
+    im.style.animationDelay = (-i * .7) + "s";
+    im.addEventListener("pointerdown", e => iniciarArrastre(e, o, im));
+    mar.appendChild(im);
+  });
+  $("#simboloReciclaje").hidden = BARCO_CON_SIMBOLO_PROPIO;
+  actualizarSucio();
+}
+function actualizarSucio(){
+  const quedan = BASURA.length - estado.p2.length;
+  $("#mar").style.setProperty("--sucio", quedan / BASURA.length);
+}
+function sobreBarco(im){
+  const b = $("#barco").getBoundingClientRect(), r = im.getBoundingClientRect();
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  return x > b.left - b.width * .12 && x < b.right + b.width * .12 && y > b.top - b.height * .1 && y < b.bottom + b.height * .5;
+}
+function iniciarArrastre(e, o, im){
+  if (im.classList.contains("entra")) return;
+  e.preventDefault();
+  const mar = $("#mar"), mr = mar.getBoundingClientRect(), ir0 = im.getBoundingClientRect();
+  const dx = e.clientX - (ir0.left + ir0.width / 2), dy = e.clientY - (ir0.top + ir0.height / 2);
+  try { im.setPointerCapture(e.pointerId); } catch (_) {}
+  im.classList.add("arrastrando");
+  const barco = $("#barco");
+  const mover = ev => {
+    const x = (ev.clientX - dx - mr.left) / mr.width * 100;
+    const y = (ev.clientY - dy - mr.top) / mr.height * 100;
+    im.style.left = Math.max(3, Math.min(97, x)) + "%";
+    im.style.top  = Math.max(3, Math.min(97, y)) + "%";
+    barco.classList.toggle("encima", sobreBarco(im));
+  };
+  const soltar = ev => {
+    im.removeEventListener("pointermove", mover);
+    im.removeEventListener("pointerup", soltar);
+    im.removeEventListener("pointercancel", soltar);
+    try { im.releasePointerCapture(ev.pointerId); } catch (_) {}
+    im.classList.remove("arrastrando");
+    barco.classList.remove("encima");
+    resolverSoltado(o, im);
+  };
+  im.addEventListener("pointermove", mover);
+  im.addEventListener("pointerup", soltar);
+  im.addEventListener("pointercancel", soltar);
+}
+function resolverSoltado(o, im){
+  if (!sobreBarco(im)) return;
+  if (o.tipo === "basura"){
+    const mar = $("#mar").getBoundingClientRect(), b = $("#barco").getBoundingClientRect();
+    im.classList.add("entra");
+    im.style.left = ((b.left + b.width / 2 - mar.left) / mar.width * 100) + "%";
+    im.style.top  = ((b.top + b.height * .6 - mar.top) / mar.height * 100) + "%";
+    sfx.pop();
+    const barco = $("#barco");
+    barco.classList.remove("recibe"); void barco.offsetWidth; barco.classList.add("recibe");
+    setTimeout(() => im.remove(), 520);
+    estado.p2.push(o.id); guardar();
+    actualizarSucio(); refrescar();
+    if (hecha2()){
+      setTimeout(() => {
+        sfx.ding(); confeti(120); chispas($("#fx2"), "estrellas", 14);
+        decir("#msg2", "¡Genial, lo habéis conseguido!", "ok");
+        $("#sig2").hidden = false;
+      }, 600);
+    } else {
+      decir("#msg2", "¡Muy bien! Un residuo menos", "ok", 2200);
+    }
+  } else {
+    sfx.nada();
+    im.style.left = o.x + "%"; im.style.top = o.y + "%";
+    decir("#msg2", "¡Eso vive en el mar! Vuelve a intentarlo", "mal", 2800);
+  }
+}
+$("#sig2").addEventListener("click", () => ir("pista3"));
+
+/* ===========================================================
+   8. PISTA 3 · DESCUBRIMOS LOS SECRETOS DEL MAR
+   =========================================================== */
+function montarP3(){
+  const oc = $("#oceano");
+  $$(".elem,.alga-fondo,.burb", oc).forEach(e => e.remove());
+  [6, 30, 62, 84].forEach(x => {
+    const a = document.createElement("img");
+    a.className = "alga-fondo"; a.src = ASSETS.alga; a.alt = ""; a.style.left = x + "%";
+    oc.appendChild(a);
+  });
+  for (let i = 0; i < 9; i++){
+    const b = document.createElement("span"), t = 8 + Math.random() * 18;
+    b.className = "burb";
+    b.style.cssText = `width:${t}px;height:${t}px;left:${Math.random()*100}%;animation-duration:${10 + Math.random()*10}s;animation-delay:${-Math.random()*14}s`;
+    oc.appendChild(b);
+  }
+  ELEMENTOS.forEach(el => {
+    const b = document.createElement("button");
+    b.className = "elem"; b.dataset.id = el.id;
+    b.dataset.nivel = estado.p3[el.id] || 0;
+    b.style.left = el.x + "%"; b.style.top = el.y + "%"; b.style.width = el.w + "%";
+    b.setAttribute("aria-label", "Elemento oculto");
+    b.innerHTML = `<img src="${ASSETS[el.img]}" alt="" draggable="false"><span class="nom3">${el.nombre}</span>`;
+    b.addEventListener("click", () => masLuz(el, b));
+    oc.appendChild(b);
+  });
+  refrescar();
+}
+function masLuz(el, b){
+  const n = estado.p3[el.id] || 0;
+  if (n >= 3) return;
+  estado.p3[el.id] = n + 1; guardar();
+  b.dataset.nivel = n + 1;
+  b.classList.remove("pista");
+  if (n + 1 === 3){
+    sfx.ding(); chispas($("#fx3"), "estrellas", 5);
+  } else {
+    sfx.pop();
+  }
+  refrescar();
+  if (hecha3()) terminar3();
+}
+function terminar3(){
+  setTimeout(() => {
+    sfx.ding(); confeti(90);
+    chispas($("#fx3"), "burbujas", 30);
+    chispas($("#fx3"), "estrellas", 18);
+    $("#final3").hidden = false;
+  }, 700);
+}
+$("#btnPista").addEventListener("click", () => {
+  const sin = ELEMENTOS.filter(el => (estado.p3[el.id] || 0) < 3)
+                       .sort((a, b) => (estado.p3[a.id] || 0) - (estado.p3[b.id] || 0));
+  if (!sin.length){ aviso("¡Ya están todos descubiertos!"); return; }
+  const b = $(`.elem[data-id="${sin[0].id}"]`);
+  b.classList.remove("pista"); void b.offsetWidth; b.classList.add("pista");
+  sfx.pop();
+  setTimeout(() => b.classList.remove("pista"), 4200);
+});
+
+/* Linterna: sigue al puntero e ilumina lo que tiene cerca */
+(function(){
+  const oc = $("#oceano"), haz = $("#haz"), lin = $("#linterna");
+  function mover(e){
+    const r = oc.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    const rad = Math.max(110, r.width * .13);
+    oc.classList.add("haz-on");
+    haz.style.setProperty("--lx", x + "px"); haz.style.setProperty("--ly", y + "px");
+    haz.style.setProperty("--r", rad + "px");
+    lin.style.left = x + "px"; lin.style.top = y + "px";
+    $$(".elem", oc).forEach(el => {
+      const b = el.getBoundingClientRect();
+      const d = Math.hypot(b.left + b.width / 2 - e.clientX, b.top + b.height / 2 - e.clientY);
+      el.classList.toggle("luz", d < rad + b.width * .25);
+    });
+  }
+  oc.addEventListener("pointermove", mover);
+  oc.addEventListener("pointerdown", mover);
+  oc.addEventListener("pointerleave", () => {
+    oc.classList.remove("haz-on");
+    $$(".elem", oc).forEach(el => el.classList.remove("luz"));
+  });
+})();
+
+/* Recompensa */
+function abrirRecompensa(){
+  estado.fin = true; guardar(); refrescar();
+  $("#recompensa").hidden = false;
+  sfx.fanfarria(); confeti(220);
+  chispas($("#fx4"), "estrellas", 20);
+  chispas($("#fx4"), "burbujas", 16);
+}
+function cerrarRecompensa(silencioso){
+  const r = $("#recompensa");
+  if (r.hidden) return;
+  r.hidden = true;
+}
+$("#btnRecompensa").addEventListener("click", abrirRecompensa);
+$("#btnOtraVez").addEventListener("click", () => {
+  sfx.fanfarria(); confeti(200);
+  chispas($("#fx4"), "estrellas", 18);
+});
+$("#btnCerrarRecompensa").addEventListener("click", () => ir("inicio"));
+
+/* ===========================================================
+   9. REFRESCAR LA PANTALLA SEGÚN EL ESTADO
+   =========================================================== */
+function estrellas(clave, n, total){
+  const cont = $(`[data-stars="${clave}"]`);
+  const previas = cont.querySelectorAll(".llena").length;
+  let html = "";
+  for (let i = 0; i < total; i++) html += `<span class="${i < n ? "llena" : "vacia"}">⭐</span>`;
+  cont.innerHTML = html;
+  if (n <= previas) cont.querySelectorAll(".llena").forEach(s => s.style.animation = "none");
+}
+function refrescar(){
+  /* Pista 1 */
+  $$(".snd").forEach(b => {
+    const id = b.dataset.id;
+    b.classList.toggle("resuelto", estado.p1.includes(id));
+    b.classList.toggle("actual", actual1 === id && sonando !== id);
+    b.classList.toggle("sonando", sonando === id);
+  });
+  $$(".foto-op").forEach(b => b.classList.toggle("resuelta", estado.p1.includes(b.dataset.id)));
+  estrellas("p1", estado.p1.length, SONIDOS.length);
+  /* Pista 2 */
+  estrellas("p2", estado.p2.length, BASURA.length);
+  /* Pista 3 */
+  estrellas("p3", vistos3(), ELEMENTOS.length);
+  /* Insignias */
+  $('[data-badge="p1"]').textContent = hecha1() ? "⭐" : "";
+  $('[data-badge="p2"]').textContent = hecha2() ? "⭐" : "";
+  $('[data-badge="p3"]').textContent = estado.fin ? "⭐" : "";
+  /* Mapa */
+  $('.parada[data-go="pista1"]').classList.toggle("hecha", hecha1());
+  $('.parada[data-go="pista2"]').classList.toggle("hecha", hecha2());
+  $('.parada[data-go="pista3"]').classList.toggle("hecha", estado.fin);
+}
+/* Rehace todo según el estado (al arrancar y al reiniciar) */
+function aplicarEstado(){
+  pararSonido(); actual1 = null;
+  callar("#msg1"); callar("#msg2");
+  $("#siguiente1").hidden = true;
+  $("#sig2").hidden = !hecha2();
+  $("#final3").hidden = !hecha3();
+  montarP1(); montarP2(); montarP3();
+}
+
+/* ===========================================================
+   11. ARRANQUE
+   =========================================================== */
+aplicarEstado();
+ir(location.hash.slice(1) || "inicio");
+</script>
+</body>
+</html>
